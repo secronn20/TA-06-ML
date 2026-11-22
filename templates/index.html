@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | StockWise{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+
+<div class="welcome-section">
+    <div>
+        <span class="eyebrow">INVENTORY MANAGEMENT</span>
+        <h2>Inventory Optimization Dashboard</h2>
+        <p>Pantau performa persediaan dan optimalkan keputusan pemesanan menggunakan Reinforcement Learning.</p>
+    </div>
+    <div class="welcome-icon">
+        <i class="bi bi-boxes"></i>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+</div>
+{% endif %}
+
+<div class="section-heading">
+    <div>
+        <h5>Ringkasan Persediaan</h5>
+        <p>Hasil simulasi menggunakan model Q-Learning</p>
+    </div>
+    <a href="{{ url_for('simulation') }}" class="btn btn-primary-custom">
+        <i class="bi bi-play-fill me-1"></i> Jalankan Simulasi
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon purple"><i class="bi bi-cart-check"></i></div>
+                <span class="stat-caption">TOTAL PERMINTAAN</span>
+            </div>
+            <h3>{{ "{:,.0f}".format(metrics.total_demand|default(0)) }}</h3>
+            <small>Unit barang</small>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon blue"><i class="bi bi-box-seam"></i></div>
+                <span class="stat-caption">BARANG TERJUAL</span>
+            </div>
+            <h3>{{ "{:,.0f}".format(metrics.total_sold|default(0)) }}</h3>
+            <small>Unit terpenuhi</small>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon orange"><i class="bi bi-exclamation-circle"></i></div>
+                <span class="stat-caption">KEKURANGAN STOK</span>
+            </div>
+            <h3>{{ "{:,.0f}".format(metrics.total_shortage|default(0)) }}</h3>
+            <small>Unit tidak terpenuhi</small>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon green"><i class="bi bi-graph-up-arrow"></i></div>
+                <span class="stat-caption">FILL RATE</span>
+            </div>
+            <h3>{{ "%.2f"|format(metrics.fill_rate|default(0)) }}%</h3>
+            <small>Tingkat pemenuhan permintaan</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-8">
+        <div class="panel-card">
+            <div class="panel-header">
+                <div>
+                    <h5>Tren Permintaan Barang</h5>
+                    <p>Visualisasi permintaan berdasarkan data historis</p>
+                </div>
+                <span class="soft-badge">Historical Data</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="demandChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="panel-card h-100">
+            <div class="panel-header">
+                <div>
+                    <h5>Informasi Sistem</h5>
+                    <p>Konfigurasi lingkungan RL</p>
+                </div>
+                <i class="bi bi-cpu panel-icon"></i>
+            </div>
+
+            <div class="info-list">
+                <div class="info-item">
+                    <span>Algoritma</span>
+                    <strong>Q-Learning</strong>
+                </div>
+                <div class="info-item">
+                    <span>Jumlah State</span>
+                    <strong>9 States</strong>
+                </div>
+                <div class="info-item">
+                    <span>Jumlah Action</span>
+                    <strong>4 Actions</strong>
+                </div>
+                <div class="info-item">
+                    <span>Stok Awal</span>
+                    <strong>200 Unit</strong>
+                </div>
+                <div class="info-item">
+                    <span>Kapasitas Maksimum</span>
+                    <strong>500 Unit</strong>
+                </div>
+                <div class="info-item">
+                    <span>Produk</span>
+                    <strong>85099B</strong>
+                </div>
+            </div>
+
+            <a href="{{ url_for('model') }}" class="btn btn-outline-custom w-100 mt-3">
+                Lihat Detail Model <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="panel-card mt-3">
+    <div class="panel-header">
+        <div>
+            <h5>Ringkasan Biaya Persediaan</h5>
+            <p>Total biaya berdasarkan simulasi Q-Learning</p>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="mini-stat">
+                <span>Total Biaya</span>
+                <h4>£{{ "{:,.2f}".format(metrics.total_cost|default(0)) }}</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="mini-stat">
+                <span>Total Pemesanan</span>
+                <h4>{{ "{:,.0f}".format(metrics.total_order|default(0)) }} unit</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="mini-stat">
+                <span>Rata-rata Stok</span>
+                <h4>{{ "{:,.2f}".format(metrics.average_stock|default(0)) }} unit</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const demandData = {{ chart_data|default({'labels': [], 'values': []})|tojson }};
+    renderDemandChart(demandData.labels || [], demandData.values || []);
+</script>
+{% endblock %}

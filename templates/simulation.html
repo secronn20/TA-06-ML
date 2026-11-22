@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Simulasi | StockWise{% endblock %}
+{% block page_title %}Simulasi Persediaan{% endblock %}
+
+{% block content %}
+
+<div class="page-intro">
+    <span class="eyebrow">SIMULATION CENTER</span>
+    <h2>Simulasi Kebijakan Persediaan</h2>
+    <p>Uji strategi pengelolaan stok menggunakan Q-Learning dan bandingkan dengan kebijakan konvensional.</p>
+</div>
+
+<div class="panel-card mb-4">
+    <div class="panel-header">
+        <div>
+            <h5>Pengaturan Simulasi</h5>
+            <p>Tentukan metode dan kondisi awal persediaan</p>
+        </div>
+        <i class="bi bi-sliders panel-icon"></i>
+    </div>
+
+    <form method="POST" action="{{ url_for('simulation') }}">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">Metode Simulasi</label>
+                <select class="form-select custom-input" name="method">
+                    <option value="q_learning" {% if selected_method == 'q_learning' %}selected{% endif %}>Q-Learning</option>
+                    <option value="reorder_point" {% if selected_method == 'reorder_point' %}selected{% endif %}>Reorder Point</option>
+                    <option value="no_order" {% if selected_method == 'no_order' %}selected{% endif %}>Tanpa Pemesanan</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Stok Awal</label>
+                <input type="number" class="form-control custom-input"
+                       name="initial_stock" min="0" max="500"
+                       value="{{ initial_stock|default(200) }}" required>
+                <small class="input-hint">Rentang 0–500 unit</small>
+            </div>
+
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary-custom w-100">
+                    <i class="bi bi-play-fill me-1"></i> Jalankan
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if metrics %}
+<div class="section-heading">
+    <div>
+        <h5>Hasil Simulasi</h5>
+        <p>Ringkasan performa metode yang dipilih</p>
+    </div>
+    <a href="{{ url_for('download') }}" class="btn btn-outline-custom">
+        <i class="bi bi-download me-1"></i> Unduh CSV
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon purple"><i class="bi bi-currency-pound"></i></div>
+                <span class="stat-caption">TOTAL BIAYA</span>
+            </div>
+            <h3>£{{ "{:,.2f}".format(metrics.total_cost) }}</h3>
+            <small>Biaya keseluruhan</small>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
+                <span class="stat-caption">FILL RATE</span>
+            </div>
+            <h3>{{ "%.2f"|format(metrics.fill_rate) }}%</h3>
+            <small>Pemenuhan permintaan</small>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon blue"><i class="bi bi-box"></i></div>
+                <span class="stat-caption">TOTAL TERJUAL</span>
+            </div>
+            <h3>{{ "{:,.0f}".format(metrics.total_sold) }}</h3>
+            <small>Unit barang</small>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon orange"><i class="bi bi-exclamation-triangle"></i></div>
+                <span class="stat-caption">STOCKOUT</span>
+            </div>
+            <h3>{{ "{:,.0f}".format(metrics.total_shortage) }}</h3>
+            <small>Unit kekurangan</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-card mb-4">
+    <div class="panel-header">
+        <div>
+            <h5>Pergerakan Persediaan</h5>
+            <p>Perbandingan stok dan permintaan selama simulasi</p>
+        </div>
+    </div>
+    <div class="chart-container chart-large">
+        <canvas id="simulationChart"></canvas>
+    </div>
+</div>
+
+<div class="panel-card">
+    <div class="panel-header">
+        <div>
+            <h5>Detail Hasil Simulasi</h5>
+            <p>Data setiap periode pengujian</p>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table custom-table">
+            <thead>
+                <tr>
+                    {% for column in results.columns %}
+                    <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in results.itertuples(index=False, name=None) %}
+                <tr>
+                    {% for value in row %}
+                    <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon"><i class="bi bi-play-circle"></i></div>
+    <h5>Simulasi Belum Dijalankan</h5>
+    <p>Pilih metode simulasi dan klik tombol Jalankan untuk melihat hasilnya.</p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{% if results is defined and results is not none %}
+<script>
+    const simulationRows = {{ results.to_dict(orient='records')|tojson }};
+    renderSimulationChart(simulationRows);
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,37 @@
+{
+    "study_case": "Optimasi Pengelolaan Persediaan Barang",
+    "product": "JUMBO BAG RED RETROSPOT",
+    "stock_code": "85099B",
+    "algorithm": "Q-Learning",
+    "state": [
+        "Stok_Rendah_Demand_Rendah",
+        "Stok_Rendah_Demand_Sedang",
+        "Stok_Rendah_Demand_Tinggi",
+        "Stok_Sedang_Demand_Rendah",
+        "Stok_Sedang_Demand_Sedang",
+        "Stok_Sedang_Demand_Tinggi",
+        "Stok_Tinggi_Demand_Rendah",
+        "Stok_Tinggi_Demand_Sedang",
+        "Stok_Tinggi_Demand_Tinggi"
+    ],
+    "actions": {
+        "0": 0,
+        "1": 100,
+        "2": 200,
+        "3": 300
+    },
+    "environment": {
+        "initial_stock": 200,
+        "max_capacity": 500,
+        "order_fixed_cost": 5.0,
+        "order_unit_cost": 0.5,
+        "holding_cost": 0.05,
+        "stockout_penalty": 2.0,
+        "lead_time": 0,
+        "max_days": 374
+    },
+    "demand_thresholds": {
+        "q33": 95.72714285714285,
+        "q66": 140.59714285714287
+    }
+}

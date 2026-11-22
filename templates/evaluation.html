@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Evaluasi Model | StockWise{% endblock %}
+{% block page_title %}Evaluasi Model{% endblock %}
+
+{% block content %}
+
+<div class="page-intro">
+    <span class="eyebrow">MODEL PERFORMANCE</span>
+    <h2>Evaluasi Strategi Persediaan</h2>
+    <p>Bandingkan performa Q-Learning dengan kebijakan Reorder Point dan tanpa pemesanan.</p>
+</div>
+
+<div class="panel-card mb-4">
+    <div class="panel-header">
+        <div>
+            <h5>Perbandingan Metode</h5>
+            <p>Hasil evaluasi berdasarkan periode pengujian</p>
+        </div>
+        <span class="soft-badge">Model Comparison</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table custom-table">
+            <thead>
+                <tr>
+                    {% if comparison and comparison|length > 0 %}
+                        {% for key in comparison[0].keys() %}
+                        <th>{{ key }}</th>
+                        {% endfor %}
+                    {% else %}
+                        <th>Metode</th>
+                        <th>Total Biaya</th>
+                        <th>Fill Rate</th>
+                        <th>Total Stockout</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in comparison %}
+                <tr>
+                    {% for value in row.values() %}
+                    <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-secondary">
+                        Data evaluasi belum tersedia.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="panel-card">
+    <div class="panel-header">
+        <div>
+            <h5>Visualisasi Perbandingan Biaya</h5>
+            <p>Semakin rendah total biaya, semakin efisien kebijakan persediaan</p>
+        </div>
+    </div>
+    <div class="chart-container chart-large">
+        <canvas id="comparisonChart"></canvas>
+    </div>
+</div>
+
+<div class="info-note mt-3">
+    <i class="bi bi-info-circle"></i>
+    <div>
+        <strong>Interpretasi Evaluasi</strong>
+        <p>Metode dengan total biaya lebih rendah dan fill rate lebih tinggi menunjukkan pengelolaan persediaan yang lebih baik. Hasil perlu diinterpretasikan bersama jumlah stockout dan biaya penyimpanan.</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const comparisonData = {{ comparison|default([])|tojson }};
+    renderComparisonChart(comparisonData);
+</script>
+{% endblock %}

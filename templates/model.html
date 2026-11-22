@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Informasi Model | StockWise{% endblock %}
+{% block page_title %}Informasi Model{% endblock %}
+
+{% block content %}
+
+<div class="page-intro">
+    <span class="eyebrow">REINFORCEMENT LEARNING</span>
+    <h2>Informasi Model Q-Learning</h2>
+    <p>Informasi state, action, nilai Q, serta riwayat pelatihan model.</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon purple"><i class="bi bi-diagram-3"></i></div>
+                <span class="stat-caption">STATE SPACE</span>
+            </div>
+            <h3>9</h3>
+            <small>Kombinasi kondisi stok dan permintaan</small>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon blue"><i class="bi bi-lightning"></i></div>
+                <span class="stat-caption">ACTION SPACE</span>
+            </div>
+            <h3>4</h3>
+            <small>Alternatif jumlah pemesanan</small>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon green"><i class="bi bi-table"></i></div>
+                <span class="stat-caption">Q-TABLE</span>
+            </div>
+            <h3>9 × 4</h3>
+            <small>36 nilai Q</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-card mb-4">
+    <div class="panel-header">
+        <div>
+            <h5>Q-Table</h5>
+            <p>Nilai Q untuk setiap kombinasi state dan action</p>
+        </div>
+        <span class="soft-badge">Learned Policy</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table custom-table text-center">
+            <thead>
+                <tr>
+                    <th>State</th>
+                    <th>Order 0</th>
+                    <th>Order 100</th>
+                    <th>Order 200</th>
+                    <th>Order 300</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in q_data %}
+                <tr>
+                    <td><strong>State {{ row.state }}</strong></td>
+                    {% for value in row.values %}
+                    <td>{{ "%.4f"|format(value) }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="panel-card mb-4">
+    <div class="panel-header">
+        <div>
+            <h5>Konfigurasi Lingkungan</h5>
+            <p>Parameter yang digunakan dalam simulasi</p>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="info-list">
+                <div class="info-item"><span>Algoritma</span><strong>Q-Learning</strong></div>
+                <div class="info-item"><span>Learning Rate</span><strong>0.1</strong></div>
+                <div class="info-item"><span>Discount Factor</span><strong>0.95</strong></div>
+                <div class="info-item"><span>Jumlah Episode</span><strong>1.000</strong></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-list">
+                <div class="info-item"><span>Stok Awal</span><strong>200 unit</strong></div>
+                <div class="info-item"><span>Kapasitas Maksimum</span><strong>500 unit</strong></div>
+                <div class="info-item"><span>Biaya Pemesanan Tetap</span><strong>£5.00</strong></div>
+                <div class="info-item"><span>Biaya Pemesanan per Unit</span><strong>£0.50</strong></div>
+                <div class="info-item"><span>Biaya Penyimpanan</span><strong>£0.05/unit</strong></div>
+                <div class="info-item"><span>Penalti Stockout</span><strong>£2.00/unit</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel-card">
+    <div class="panel-header">
+        <div>
+            <h5>Riwayat Training</h5>
+            <p>Perkembangan reward selama proses pelatihan</p>
+        </div>
+    </div>
+    <div class="chart-container chart-large">
+        <canvas id="trainingChart"></canvas>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const trainingData = {{ training|default([])|tojson }};
+    renderTrainingChart(trainingData);
+</script>
+{% endblock %}
